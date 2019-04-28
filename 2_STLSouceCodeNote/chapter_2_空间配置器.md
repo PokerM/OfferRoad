@@ -62,6 +62,9 @@ union obj{//采用union，避免额外指针
     char client_data[1];
 }
 ```
+自由链表(free_list)实现技巧：为了维护链表，每个节点可能需要额外的指针，会造成额外的负担。注意到*free_list*节点*obj*为一个*union*，其指针在为实际区块内部，不会为了维护所必需的指针，造成浪费。
+![avrtar][pic_2]
+
 第二级配置器部分实现内容：
 ```c++
 enum {__ALIGN = 8};         //小型区块的上调边界
@@ -83,7 +86,8 @@ private:
         return ((bytes + __ALIGN - 1)/__ALIGN - 1);
     }
     static void* refill(size_t n);//返回一个大小为n的对象，并可能加入大小为n的其他区块的free_list
-    //配置一块大的空间，在后面详讲
+
+    //从内存池中为free_list分配空间，在后面详讲
     static char* chunk_alloc(size_t size, int& nodjs);//注意，nodjs是引用传值
 
     static char* start_free; //内存池起始位置，只在chunk_alloc函数中改变
@@ -95,8 +99,7 @@ public:
     static void* reallocate(void* p, size_t old_sz, size_t new_sz);
 }
 ```
-                                    自由链表(free_list)实现技巧
-![avrtar][pic_2]
+
 ### 2.2.7 空间配置函数allocate()
 ```c++
 static void* allocate(size_t n){
@@ -119,6 +122,8 @@ static void* allocate(size_t n){
 }
 ```
 
+                                        从free_list中取出区块
+![avrtar][pic_3]
 ### 2.2.8 空间释放函数deallocate()
 deallocate()与allocate()类似，不再赘述
 
@@ -129,7 +134,7 @@ deallocate()与allocate()类似，不再赘述
 template<bool threads, int inst>
 void* __default_alloc_template<threads, inst>::refill(size_t n){
     int nobjs = 20;//默认取得20个新节点
-    char* chunk = chunk_alloc(n, nobjs);
+    char* chunk = chunk_alloc(n, nobjs);//此处为引用传值，返回其实际申请的大小，用Unix网络编程中的术语来说就是，值-结果类型
     obj* volatile * my_free_list;
     obj* result;
     obj *current_obj, *next_obj;
@@ -157,8 +162,7 @@ void* __default_alloc_template<threads, inst>::refill(size_t n){
     return result;
 }
 ```
-                                        从free_list中取出区块
-![avrtar][pic_3]
+
 ### 2.2.10 内存池（memory pool）
 chunk_alloc():为free_list从memory pool中分配空间
 ```c++
@@ -202,7 +206,7 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t size, int& nob
             //heap空间不足，malloc()失败
             int i;
             obj* volatile *my_free_list, *p;
-            //尝试查看free_list。搜寻那些还未使用，并且足够大的free_list
+            //尝试查看free_list。搜寻那些还未使用，并且足够大的free_list(大于申请空间size)
             for(i=size;i<=__MAX_BYTES;i+=__ALIGN){
                 my_free_list = free_list + FREELIST_INDEX(i);
                 p = *my_free_list;
@@ -211,7 +215,7 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t size, int& nob
                     *my_free_list = p->free_list_link;
                     start_free = (char*)p;
                     end_free = start_free + i;
-                    return chunk_alloc(size, nobjs);
+                    return chunk_alloc(size, nobjs);//重新调用该函数，为free_list分配空间，现在至少能满足一个的需求，因为已经释放掉了大于等于size的空间
                 }
             }
             end_free = 0;//无内存可用
@@ -224,7 +228,17 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t size, int& nob
     }
 }
 ```
-chunk_alloc()函数逻辑：判断内存池内水量是否充足，若充足，直接调出20个区块返回。若小于20大于1，这时候改变pass_by_reference的nobjs的值改变，修改为实际能提供的区块数。如果实在过小，连一个区块也无法供应。这时需要调用malloc从heap中配置内存，为内存池中增加水量，若增加成功，则再次调用该函数重新为free_list分配空间；若增加失败，heap中内存不足，则再尝试调用第一级配置器，看看在out-of-memory机制是否有效。（客户指定的set_malloc_handler())
+chunk_alloc()函数逻辑：判断内存池内水量是否充足，若充足，直接调出20个区块返回。若小于20大于1，这时候改变pass_by_reference的nobjs的值改变，修改为实际能提供的区块数。如果实在过小，连一个区块也无法供应。这时需要调用malloc从heap中配置内存，为内存池中增加水量，若增加成功，则再次调用该函数重新为free_list分配空间；若增加失败，heap中内存不足，则查看free_list中大于size的链表中有没有还未使用的区块，有就释放掉，放到内存池中，供当前请求使用，若free_list中没有大于size的区块，则再尝试调用第一级配置器，看看在out-of-memory机制是否有效。（客户指定的set_malloc_handler())
+
+SGI STL alloc空间配置总结：
+1. 分配空间大于128bytes，调用第一级配置器；小于128bytes，调用第二级配置器
+2. 第一级配置若空间分配失败，会循环尝试释放、配置，直到空间分配成功，或者抛出异常 
+3. 第二级配置器查找对应free_list，若有区块，则返回，没有则调用refill，尝试从内存池中分配区块给free_list(默认为20个申请空间大小的区块)
+4. 若内存池中满足20个空间大小的区块的请求，则将第一个区块返回，并将剩余区块添加到对应free_list中；
+5. 若不能满足20个，但能满足至少一个区块的请求，就将第一个区块返回，并将剩余区块添加到对应free_list中；
+6. 若一个也不能满足，则从heap中申请空间，大小为请求的2倍再加上一个随着配置次数增加的附加量；
+7. 若heap空间不足，则查看free_list有没有大于size的区块，若有，则将其释放回内存池中，供当前请求使用；
+8. 若free_list中也没有满足要求的区块，则尝试调用第一级配置器，看看在out-of-memory机制是否有效。（客户指定的set_malloc_handler())
 
 ## 2.3 内存基本处理工具
 介绍了三种负责拷贝或者赋值的函数，其主要特点在于判断待处理对象是否为POD（Plain Old Data),也就是标量型别或传统的C struct型别，若是，直接调用最有效率的memmove()直接进行内存移动，若不是，则相应地调用对应的拷贝构造函数之类的最安全的方式。
