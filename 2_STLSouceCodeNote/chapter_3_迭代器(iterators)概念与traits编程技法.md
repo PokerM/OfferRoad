@@ -7,8 +7,8 @@ STL的中心思想：**将数据容器(*containers*)和算法(*algorithm*)分开
 ## 3.2 迭代器(*iterator*)是一种*Smart pointer*
 迭代器是一种**行为类似指针的对象**。指针各种行为最常见也是最重要的便是解引用(*dereference*)和成员访问(*member access*),那么迭代器最重要的编程工作就是对*operator* &#42; 和*operator*->进行重载。与*auto_ptr*相似，这里不再赘述，可以在任何一本关于C++语法的书里找到这一部分内容。 
 ## 3.3 迭代器相应类型(*associated types*)
-迭代器所指之物的类型(*类型*)。
-假设算法中需要声明一个迭代器所指之物的类型的变量(*用auto可以吗？*)
+迭代器所指之物的类型。
+假设算法中需要声明一个迭代器所指之物的类型的变量
 
 解决办法：用*function template*的参数推导(argument derivation)机制
 ```c++
@@ -161,11 +161,11 @@ struct iterator_traits<const T*>{
 ### 3.4.5 迭代器相应类型之五：*iterator_category*
 #### 迭代器的分类
 根据移动特性和施行的操作，迭代器被分为五类：
-- Input Iterator:read only
-- Output Iterator:write only
-- Forward Iterator:单向移动，允许“写入型”算法进行读写操作
-- Bidirectional Iterator:双向移动
-- Random Access Iterator:涵盖所有指针算术能力
+- Input Iterator: read only
+- Output Iterator: write only
+- Forward Iterator: 单向移动，允许“写入型”算法进行读写操作
+- Bidirectional Iterator: 双向移动
+- Random Access Iterator: 涵盖所有指针算术能力
 
 c++中定义了五种迭代器类型：
 ```c++
@@ -217,7 +217,7 @@ struct iterator_traits<T*>{
 
 //针对原生pointer-to-const的特化版
 template <class T>
-struct iterator_traits<T*>{
+struct iterator_traits<const T*>{
     ...
     typedef typename random_access_iterator_tag iterator_category;//原生pointer-to-const可随机访问
 }
@@ -237,13 +237,23 @@ traits编程技法牛逼！👍
 ## 3.7 SGI STL私房菜：__type_traits
 SGI将traits编程技法扩展到迭代器以外的世界，定义了__type_traits(双下划线前缀表示不在STL标准规范中)。
 
-iterator_traits负责萃取迭代器的特性，__type_traits负责萃取类型的特性。类型特性是指：1)是否具有non-trival的构造函数;2)是否具有non-trival的拷贝构造函数;3)是否具有non-trival的析构函数;4)是否具有non-trival的operator=;5)是否为POD(*Plain Old Data*);
+iterator_traits负责萃取迭代器的特性，__type_traits负责萃取类型的特性。类型特性是指：
+
+1)是否具有non-trival的构造函数;
+
+2)是否具有non-trival的拷贝构造函数;
+
+3)是否具有non-trival的析构函数;
+
+4)是否具有non-trival的operator=;
+
+5)是否为POD(*Plain Old Data*);
 
 __type_traits<T>:
 ```c++
 template<class type>
 struct __type_traits{
-    typedef __true_type this_dummy_member_must_be_first;//与某些能自动将__type_traits特化的编译器使用的__type_traits区分开来
+    typedef __true_type     this_dummy_member_must_be_first;//与某些能自动将__type_traits特化的编译器使用的__type_traits区分开来
     typedef __false_type    has_trivial_default_constructor;
     typedef __false_type    has_trivial_copy_constructor;
     typedef __false_type    has_trivial_assignment_operator;
