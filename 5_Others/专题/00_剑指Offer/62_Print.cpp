@@ -1,6 +1,8 @@
 #include <vector>
 
 using namespace std;
+
+//层序打印
 struct TreeNode {
     int val;
     struct TreeNode *left;
