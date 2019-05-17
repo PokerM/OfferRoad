@@ -35,6 +35,7 @@ URL是一种特殊类型的URI，URL不仅标识了一个资源，而且还指�
 
 ## 请求消息Request
 ![avrtar][pic_1]
+
 请求消息格式
 1. 第一部分：**请求行**。用来说明请求类型，要访问的资源以及所使用的HTTP版本
 2. 第二部分：**请求头部**。紧接请求行的部分，用来说明服务器要使用的附加信息
@@ -44,11 +45,18 @@ URL是一种特殊类型的URI，URL不仅标识了一个资源，而且还指�
 ### GET请求例子
 
 GET /562f25980001b1b106000338.jpg HTTP/1.1
+
 Host    img.mukewang.com
-User-Agent    Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36
+
+User-Agent    Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) 
+Chrome/51.0.2704.106 Safari/537.36
+
 Accept    image/webp,image/*,*/*;q=0.8
+
 Referer    http://www.imooc.com/
+
 Accept-Encoding    gzip, deflate, sdch
+
 Accept-Language    zh-CN,zh;q=0.8
 
 1. 第一部分：**请求行**
@@ -58,10 +66,15 @@ GET /562f25980001b1b106000338.jpg HTTP/1.1
 2. 第二部分：**请求头部**
 
 Host    img.mukewang.com
+
 User-Agent    Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36
+
 Accept    image/webp,image/*,*/*;q=0.8
+
 Referer    http://www.imooc.com/
+
 Accept-Encoding    gzip, deflate, sdch
+
 Accept-Language    zh-CN,zh;q=0.8
 
 ### POST请求例子
@@ -77,21 +90,25 @@ name=Professional%20Ajax&publisher=Wiley
 
 1. 第一部分：**请求行**
 
-POST / HTTP1.1
+    POST / HTTP1.1
 
 2. 第二部分：**请求头部**
 
-Host:www.wrox.com
-User-Agent:Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)
-Content-Type:application/x-www-form-urlencoded
-Content-Length:40
-Connection: Keep-Alive
+    Host:www.wrox.com
+
+    User-Agent:Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)
+
+    Content-Type:application/x-www-form-urlencoded
+
+    Content-Length:40
+
+    Connection: Keep-Alive
 
 3. 第三部分：**空行**
 
 4. 第四部分：**请求数据**
 
-name=Professional%20Ajax&publisher=Wiley
+    name=Professional%20Ajax&publisher=Wiley
 
 ## 响应消息Response
 一般情况下，服务器接收并处理客户端发过来的请求后会返回一个HTTP响应消息。
@@ -105,7 +122,9 @@ HTTP响应由四个部分组成，分别是：**状态行、消息报头、空�
 ### HTTP响应例子
 
 HTTP/1.1 200 OK
+
 Date: Fri, 22 May 2009 06:07:21 GMT
+
 Content-Type: text/html; charset=UTF-8
 
 <html>
@@ -122,6 +141,7 @@ HTTP/1.1 200 OK
 2. 第二部分：**消息报头**
 
 Date: Fri, 22 May 2009 06:07:21 GMT       生成响应的日期和时间
+
 Content-Type: text/html; charset=UTF-8    指定了MIME类型的HTML，编码类型为UTF-8
 
 3. 第三部分：**空行**
@@ -137,34 +157,52 @@ Content-Type: text/html; charset=UTF-8    指定了MIME类型的HTML，编码类
 
 ### 状态码
 状态码由三位数字组成，第一个数字定义了响应类别，共分为五种类别：
+
 1xx：指示信息，表示请求已接收，继续处理
+
 2xx：成功，表示请求已被成功接收、理解、接受
+
 3xx：重定向，要完成请求必须进行更进一步的操作
+
 4xx：客户端错误，请求有语法错误或请求无法实现
+
 5xx：服务端错误，服务器未能实现合法的请求
 
 ### 常见状态码
 
 200 OK                        //客户端请求成功
+
 400 Bad Request               //客户端请求有语法错误，不能被服务器所理解
+
 401 Unauthorized              //请求未经授权，这个状态代码必须和WWW-Authenticate报头域一起使用 
+
 403 Forbidden                 //服务器收到请求，但是拒绝提供服务
+
 404 Not Found                 //请求资源不存在，eg：输入了错误的URL
+
 500 Internal Server Error     //服务器发生不可预期的错误
+
 503 Server Unavailable        //服务器当前不能处理客户端的请求，一段时间后可能恢复正常
 
 ## 请求方法
 HTTP1.0定义了三种请求方法：GET POST HEAD
+
 HTTP1.1新增五种请求方法：OPTIONS PUT DELETE TRACE CONNECT
 
 GET：请求指定页面信息，并返回实体主体
+
 HEAD：类似GET，但返回的响应中没有具体内容，用于获取报头
+
 POST：向指定资源提交数据进行处理请求（例如提交表单或者上传文件）。数据被包含在请求体中。POST请求可能会导致新的资源建立或者已有资源修改。
 
 PUT：从客户端向服务器传送的数据取代指定文档的内容
+
 DELETE：请求服务器删除指定页面
+
 CONNECT：HTTP/1.1协议中预留给能够将连接改为管道方式的代理服务器
+
 OPTIONS：允许客户端查看服务器性能
+
 TRACE：回显服务器收到的请求，主要用于测试
 
 ## 工作原理
@@ -179,7 +217,7 @@ TRACE：回显服务器收到的请求，主要用于测试
  1. **建立连接**。浏览器与Web服务器的HTTP端口（默认为80）建立一个TCP套接字连接。
  2. **发送HTTP请求**。客户端通过TCP套接字向Web服务器发送一个文本的请求报文。
  3. **接收请求并返回HTTP响应**。Web服务器解析请求，定位请求资源。服务器将资源副本写到TCP套接字，由客户端读取。
- 4. **释放TCP连接**。若connection模式为close，则服务器主动关闭TCP连接，客户端被动关闭连接，释放TCP连接；若connection模式为Keep-Alive，则该连接会保持一段时间，在该时间内可以继续接受请求。
+ 4. **释放TCP连接**。若connection模式为close，则服务器主动关闭TCP连接，客户端被动关闭连接，释放TCP连接；若connection模式为Keep-Alive，则该连接会保持，直到客户端主动关闭。
  5. **客户端解析HTML内容**。客户端浏览器首先解析状态行，查看表明请求是否成功的状态代码。然后解析每一个响应头。读取响应数据HTML，根据HTML语法对其进行格式化，并在浏览器窗口中显示
 
  GET和POST请求的区别
