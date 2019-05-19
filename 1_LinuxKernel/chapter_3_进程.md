@@ -12,18 +12,19 @@
 描述进程的属性。结构体task_struct。
 
 几个重要字段：
-- thread_info：进程基本信息
+- thread_info：进程基本信息的指针
 - mm_struct：指向内存区描述符的指针
 - tty_struct：与进程相关的tty
 - fs_struct：当前目录
 - files_struct：指向文件描述符的指针
 - signal_struct：所接收的信号
+- thread：硬件上下文保存结构
 
 ## 进程状态
 进程描述符中的state字段描述了进程当前所处的状态。
 - 可运行状态(TASK_RUNNING)：进程要么在CPU上运行，要么准备执行
-- 可中断的等待状态(TASK_INTERRUPTIBLE)：进程被挂起，直到某个条件变为真。中断能打断该状态
-- 不可中断的等待状态(TASK_UNINTERRUPTIBLE)：与可中断的等待状态类似，但不能被中断，在进程必须等待，直到一个不能被中断的事件发生
+- 可中断的等待状态(TASK_INTERRUPTIBLE)：进程被挂起，直到某个条件变为真。中断能打断该等待状态，终止等待
+- 不可中断的等待状态(TASK_UNINTERRUPTIBLE)：与可中断的等应的硬件设备时需要用到这种状态。探测完成以待状态类似，但不能被中断，在进程必须等待，直到一个不能被中断的事件发生。（例如，当进程打开一个设备文件，其相应的设备驱动程序开始探测相前，设备驱动程序不能被中断。
 - 暂停状态(TASK_STOPPED)：进程的执行被暂停。收到SIGSTOP SIGTSTP SIGTTIN SIGTTOU等信号，进入暂停状态
 - 跟踪状态(TASK_TRACED)：debug
 
@@ -49,11 +50,21 @@ esp寄存器是CPU栈指针，用来存放栈顶单元的地址。数据写入�
 
 prio_array_t数据结构字段
 ![avrtar][pic_2]
+
+优先权位图：当且仅当某个优先权的进程链表不为空时，设置相应的位标志。
+
+enqueue_task(p,array)函数将进程描述符插入到某个运行队列的链表中，其代码本质为：
+```c
+list_add_tail(&p->run_list, &array->queue[p->prio]);//p->run_list加入到queue中指定链表的尾部
+__set_bit(p->prio, array->bitmap);//设置相应的优先权位图
+array->nr_active++;//进程描述符数量增加
+p->array = array;//将该结构的指针赋值给进程描述符
+```
 ## 进程间关系
 进程具有父子关系、兄弟关系。
 
 ## pidhash表及链表
-从PID到处对应的进程描述符的指针。Linux采用4个散列表。进程描述符包含了表示不同类型PID字段。
+从PID导出对应的进程描述符的指针。Linux采用4个散列表。进程描述符包含了表示不同类型PID字段。
 
 4个散列表和进程描述符中的相关字段
 ![avrtar][pic_3]
@@ -75,23 +86,23 @@ PID散列表结构
 ```c
 struct _ _wait_queue_head{
     spinlock_t lock;//自旋锁，实现同步
-    struct     list_head task_list;//等待进程链表的头
+    struct     list_head task_list;//list_head双向链表的节点数据结构
 };
 typedef struct _ _wait_queue_head wait_queue_head_t;
 ```
 等待队列链表元素类型为wait_queue_t，每个元素代表一个睡眠进程。
 ```c
-struct _ _wait_queue{
-    unsigned int        flags;
-    struct task_struct* task;
+struct _ _wait_queue{//等待队列链表元素类型，每个元素代表一个睡眠进程
+    unsigned int        flags;//1代表互斥进程，0代表非互斥进程
+    struct task_struct* task;//进程描述符
     wait_queue_func_t   func;
-    struct list_head    task_list;
+    struct list_head    task_list;//list_head双向链表的节点数据结构
 };
 typedef struct _ _wait_queue wait_queue_t;
 ```
 有两种睡眠进程：
 - 互斥进程（等待队列元素的flags字段为1）由内核选择唤醒
-- 非互斥进程（flags字段为0）在事件发生时唤醒。
+- 非互斥进程（flags字段为0）在事件发生时唤醒
 
 等待访问临界区的进程是互斥进程的典型例子。等待相关事件的进程是非互斥的。
 
@@ -111,7 +122,7 @@ Linux2.6使用软件执行进程切换：
 ## 任务状态段
 任务状态段用来存放硬件上下文。Linux并不使用硬件上下文切换，但为每个CPU（而非原始为每个进程）创建一个TSS。
 - CPU从用户态切换到内核态时，它就从TSS中获取内核态堆栈的地址
-- 当用户态进程试图通过in或者out指令访问一个IO端口时，CPU需要访问存放在TSS中的IO许可位全图（Permission Bitmap）以检查是否有访问端口的权利。
+- 当用户态进程试图通过in或者out指令访问一个IO端口时，CPU需要访问存放在TSS中的IO许可权位图（Permission Bitmap）以检查是否有访问端口的权利。
 
 当进程在用户态执行in或out指令时，控制单元执行下列操作
 1. 检查eflags寄存器中的2位IOPL字段。
@@ -139,7 +150,7 @@ Linux2.6使用软件执行进程切换：
 ## 内核线程
 传统Unix系统把一些重要的任务委托给周期性执行得进程，这些任务包括刷新磁盘高速缓存，交换出不用的页框，维护网络连接等等。因为一些系统进程只运行在内核态，所以现代操作系统把他们的函数委托给内核线程(kernel thread)，内核线程不受不必要的用户态上下文的拖累。
 
-在Linux中国，内核线程在以下两方面不同于普通进程：
+在Linux中，内核线程在以下两方面不同于普通进程：
 - 内核线程只运行在内核态，而普通进程即可以运行在内核态，也可以运行在用户态。
 - 内核线程只运行在内核态，它们只使用大于PAGE_OFFSET的线性地址空间。而普通进程不管在内核态还是用户态，都可以使用4GB的线性地址空间
 

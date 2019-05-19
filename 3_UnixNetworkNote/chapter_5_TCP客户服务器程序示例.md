@@ -1,0 +1,60 @@
+# TCP客户服务器程序示例
+
+## POSIX信号处理
+信号（signal）是告知某个进程发生某个事件的通知，也称为软件中断。信号通常是异步发生的。
+
+信号的发送方向可以为：
+- 由一个进程发送给另一个进程（或者自身）
+- 由内核发送给某个进程
+
+**设置处理函数的信号掩码**
+
+若sa_mask设置为空集，则意味着不阻塞额外的信号
+
+**设置SA_RESTART**
+
+SA_RESTART如果设置，则相应信号中断的系统调用将由内核自动重启。
+
+## POSIX信号语义
+- 一旦安装了信号处理函数，便一直安装着
+- 在信号处理函数运行期间，正在被提交的信号是阻塞的。
+- Unix信号默认是不排队的
+- 可通过sigprocmask函数选择性地阻塞或者解阻塞一组信号
+
+## 处理SIGCHLD信号
+设置僵死状态的目的是维护子进程的信息，以便于父进程在以后某个时候获取。
+
+### 处理僵死进程
+若不处理僵死进程，它们将一直占用内核中的空间，最终可能导致资源耗尽。所以任何时候fork子进程都需要wait，以防编程僵死进程。所以需要建立SIGCHLD信号的处理函数。
+```c
+signal(SIGCHLD, sig_chld);
+
+void sig_chld(int signo){
+    int stat;
+    pid_t pid = wait(&stat);
+    return;
+}
+```
+一般来说，捕获信号的父进程都阻塞在某个慢系统调用（可能永远阻塞的系统调用），内核会使得该慢系统调用返回一个EINTR错误，若父进程不处理该错误，则会终止运行。在特定的操作系统中设置了SA_RESTART标志内核会自动重启被中断的系统调用，所以为了程序的可移植性，一般需要捕获EINTR错误。
+
+## wait和waitpid函数
+```c
+#include <sys/wait.h>
+pid_t wait(int *statloc);
+pid_t waitpid(pid_t pid, int* statloc, int options);
+```
+两个函数均有两个返回值：已终止子进程ID号，以及通过statloc返回的子进程终止状态。**正常终止、由某个信号杀死、还是作业控制停止**。waitpid的pid参数允许指定等待的进程ID，值-1表示等待第一个终止的子进程，option参数允许指定附加选项。最常用的选项是WNOHANG，不阻塞。
+
+## wait与waitpid的区别
+当多个相同信号同时发出，或者在调用处理函数时发出信号时，只会处理一个信号，因为信号不会排队。使用wait可能导致僵死进程不能正确处理。
+
+正确的解法为在一个循环内调用waitpid，以防止在调用该函数时发出信号。
+```c
+void sig_chld(int signo){
+    int stat;
+    pid_t pid;
+    while((pid = waitpid(-1, &stat, WNOHANG)) > 0){
+        printf("child %d terminated\n", pid);
+    }
+    return;
+}

@@ -39,21 +39,21 @@ using namespace std;
 
 
 //简单singleton实现，线程不安全:若两个线程同时首次调用getInstance()，同时检测ptr为NULL，将会实例化两次。
-// class singleton{
-// protected:
-//     singleton(){};//默认构造函数定义为protected，防止类外实例化
-// private:
-//     static singleton* ptr;
-// public:
-//     static singleton* getInstance();
-// };
-// singleton* singleton::ptr = NULL;
-// singleton* singleton::getInstance(){
-//     if(ptr == NULL){
-//         ptr = new singleton(); 
-//     }
-//     return ptr;
-// }
+class singleton{
+protected:
+    singleton(){};//默认构造函数定义为protected，防止类外实例化
+private:
+    static singleton* ptr;
+public:
+    static singleton* getInstance();
+};
+singleton* singleton::ptr = NULL;
+singleton* singleton::getInstance(){
+    if(ptr == NULL){
+        ptr = new singleton(); 
+    }
+    return ptr;
+}
 
 // //懒汉与饿汉
 // //懒汉：不到万不得已不实例化。只有在调用时才实例化。（上述则为懒汉）

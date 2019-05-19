@@ -46,7 +46,7 @@ int bind(int sockfd, const struct *myaddr, socklen_t addrlen);//成功返回0，
 
 **listen**
 ```c
-int listen(int sockfd, int backlog);//backlog:最大连接数
+int listen(int sockfd, int backlog);//backlog:最大连接数。成功返回0，出错返回-1
 ```
 任何一个给定的监听套接字维护两个队列：
 - 未完成连接队列(*incomplete connection queue*),每个这样的SYN分节对应其中某个客户发出并到达服务器，而服务器正在等待完成相应的TCP三路握手过程。（处于SYN_RCVD状态）
