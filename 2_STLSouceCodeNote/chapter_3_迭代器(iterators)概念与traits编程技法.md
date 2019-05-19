@@ -72,7 +72,7 @@ struct iterator_traits<T*>{
 下面这个特化版本解决了指向const对象的指针无法声明一个non-const变量的问题：
 ```c++
 template <class T>
-struct iterator_traits<T*>{
+struct iterator_traits<const T*>{
     typedef T value_type;
 };
 ```
@@ -82,7 +82,7 @@ struct iterator_traits<T*>{
 
 最常用的五种相应类型：
 ```c++
-template <class T>
+template <class I>
 struct iterator_traits{
     typedef typename I::iterator_category iterator_category;
     typedef typename I::value_type        value_type;

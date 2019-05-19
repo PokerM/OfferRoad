@@ -61,31 +61,37 @@ Accept-Language    zh-CN,zh;q=0.8
 
 1. 第一部分：**请求行**
 
-GET /562f25980001b1b106000338.jpg HTTP/1.1
+      GET /562f25980001b1b106000338.jpg HTTP/1.1
 
 2. 第二部分：**请求头部**
 
-Host    img.mukewang.com
+      Host    img.mukewang.com
 
-User-Agent    Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36
+      User-Agent    Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36
 
-Accept    image/webp,image/*,*/*;q=0.8
+      Accept    image/webp,image/*,*/*;q=0.8
 
-Referer    http://www.imooc.com/
+      Referer    http://www.imooc.com/
 
-Accept-Encoding    gzip, deflate, sdch
+      Accept-Encoding    gzip, deflate, sdch
 
-Accept-Language    zh-CN,zh;q=0.8
+      Accept-Language    zh-CN,zh;q=0.8
 
 ### POST请求例子
 
 POST / HTTP1.1
+
 Host:www.wrox.com
+
 User-Agent:Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)
+
 Content-Type:application/x-www-form-urlencoded
+
 Content-Length:40
+
 Connection: Keep-Alive
 
+&#13;
 name=Professional%20Ajax&publisher=Wiley
 
 1. 第一部分：**请求行**
@@ -136,24 +142,25 @@ Content-Type: text/html; charset=UTF-8
 
 1. 第一部分：**状态行**
 
-HTTP/1.1 200 OK
+      HTTP/1.1 200 OK
 
 2. 第二部分：**消息报头**
 
-Date: Fri, 22 May 2009 06:07:21 GMT       生成响应的日期和时间
+      Date: Fri, 22 May 2009 06:07:21 GMT       生成响应的日期和时间
 
-Content-Type: text/html; charset=UTF-8    指定了MIME类型的HTML，编码类型为UTF-8
+      Content-Type: text/html; charset=UTF-8    指定了MIME类型的HTML，编码类型为UTF-8
 
 3. 第三部分：**空行**
 
 4. 第四部分：**响应正文**
-
-<html>
-      <head></head>
-      <body>
-            <!--body goes here-->
-      </body>
-</html>
+```html
+      <html>
+            <head></head>
+            <body>
+                  <!--body goes here-->
+            </body>
+      </html>
+```
 
 ### 状态码
 状态码由三位数字组成，第一个数字定义了响应类别，共分为五种类别：

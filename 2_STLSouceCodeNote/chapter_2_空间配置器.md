@@ -31,7 +31,7 @@ SGI STL的配置器与标准规范不同，其名称为alloc，且不接受任�
 该配置器只是将new和delete做了一层薄薄的封装，效率不佳，不做介绍。
 
 ### 2.2.2 SGI特殊的空间配置器std::alloc
-new算式包含两阶段操作（1）调用::operator new配置内存；(2)调用对象构造函数。
+new算式包含两阶段操作(1)调用::operator new配置内存；(2)调用对象构造函数。
 
 delete算式也包括两阶段操作(1)调用对象的析构函数(2)调用::operator delete 释放内存
 
@@ -117,7 +117,7 @@ static void* allocate(size_t n){
         return r;
     }
     //调整free_list
-    *my_free_list = result->free_list_link;
+    *my_free_list = result->free_list_link;//free_list_link == next
     return result;
 }
 ```
@@ -137,7 +137,7 @@ void* __default_alloc_template<threads, inst>::refill(size_t n){
     char* chunk = chunk_alloc(n, nobjs);//此处为引用传值，返回其实际申请的大小，用Unix网络编程中的术语来说就是，值-结果类型
     obj* volatile * my_free_list;
     obj* result;
-    obj *current_obj, *next_obj;
+    obj* current_obj, *next_obj;
     int i;
 
     //如果由于内存池过小，只获得一个区块，那么就分配给调用者，并返回，无需为free_list增加节点，因为没有多余区块
@@ -190,7 +190,7 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t size, int& nob
     }
     else{
         //内存池剩余空间过小，连一个区块的大小的请求都无法满足
-        size_t bytes_to_get = 2 * total_bytes + ROUND_UP(head_size >> 4);
+        size_t bytes_to_get = 2 * total_bytes + ROUND_UP(heap_size >> 4);
         //将内存池中剩余的零头利用起来
         if(bytes_left > 0){
             //首先将剩余的零头分配给适当的free_list

@@ -41,7 +41,7 @@ connect函数激发TCP的三次握手过程，其中出错返回可能情况为�
 
 把本地协议地址赋予一个套接字
 ```c
-int bind(int sockfd, const struct *myaddr, socklen_t addrlen);//成功返回0，出错为-1
+int bind(int sockfd, const struct sockaddr *myaddr, socklen_t addrlen);//成功返回0，出错为-1
 ```
 
 **listen**
