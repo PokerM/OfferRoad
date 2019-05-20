@@ -1,3 +1,7 @@
+#include <vector>
+#include <iostream>
+
+using namespace std;
 //算法分析：T(n) = 1 + T(3n/4),那么时间复杂度为以4/3为底的对数
 //剑指offer给出的算法可能出现非常差的时间复杂度：考虑二维数组退化成一维数组，那么书上的算法则退化为n,没有利用有序性，所以不是最优的算法
 class Solution {

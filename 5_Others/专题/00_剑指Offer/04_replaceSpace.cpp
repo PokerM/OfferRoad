@@ -1,7 +1,7 @@
 class Solution {
 public:
 	void replaceSpace(char *str,int length) {
-        if(str==NULL)return;
+        if(str==nullptr)return;
         int _num = 0;//空格个数
         int old = 0;//总字符数，未计'\0'
         int i=0;

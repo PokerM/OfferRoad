@@ -30,7 +30,7 @@ int connect(int sockfd, const struct sockaddr *servaddr, socklen_t addrlen);//�
 connect函数激发TCP的三次握手过程，其中出错返回可能情况为：
 1. TCP客户没有收到SYN分节的响应。
 2. 若TCP客户收到的SYN响应为RST，则表示该服务器主机在我们指定的端口没有进程在等待与之连接。这是一种硬错误（hard error），一收到RST立马返回ECONNREFUSED。
-3. 若客户发出的SYN在中间某个路由器引发了一个“destination unreachable”ICMP无措，则认为是一种软错误。客户主机内核保存该消息，并按照一定的时间间隔重发SYN分节
+3. 若客户发出的SYN在中间某个路由器引发了一个“destination unreachable”ICMP错误，则认为是一种软错误。客户主机内核保存该消息，并按照一定的时间间隔重发SYN分节
 
 产生RST三个条件：
 - SYN分节到达服务器，但服务器并没有监听该端口的进程
