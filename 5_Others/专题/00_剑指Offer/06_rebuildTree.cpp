@@ -33,7 +33,8 @@ void preorderTraversal(BinaryTreeNode* root,vector<BinaryTreeNode*>& ve){
     stack<BinaryTreeNode*> s;
     BinaryTreeNode* p = root;
     while(p != NULL || !s.empty()){
-        if(p != NULL){//判断当前节点是否为空
+        if(p != NULL){
+            //判断当前节点是否为空
             //当前节点不为空，将该节点加入结果中并压入栈中，为后面访问该节点做准备
             ve.push_back(p);
             s.push(p);
