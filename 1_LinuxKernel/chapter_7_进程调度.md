@@ -494,6 +494,56 @@ rebalance_tick运行逻辑：
         - 被迁移的进程不是“高速缓存命中”的
 3. **迁移队列**。can_migrate_task()返回1则调用pull_task()函数将候选进程迁移到本地运行队列中。
 
+## 与调度相关的系统调用
+允许用户降低其进程的优先级，若需要修改其他用户的某一进程的优先级或者提高自己进程的优先级，需要拥有超级用户权限
+
+### nice()系统调用
+允许进程改变它们的基本优先级
+
+### getpriority()和setpriority()系统调用
+getpriority()：返回20-给定组中所有进程最低nice字段的值（最高优先级）。*返回20减去该值是由于该值范围为-20~19，一般只在错误时返回负值，所以进行了映射*
+
+setpriority()：把给定组中所有进程的基本优先级都改变给定的值。*增加优先级需要查看CAP_SYS_NICE权能*
+
+### sched_getaffinity()和sched_setaffinity()系统调用
+sched_getaffinity()：返回CPU进程亲和力掩码
+
+sched_getaffinity()：设置CPU进程亲和力掩码
+
+## 与实时进程相关的系统调用
+允许进程改变自己的调度规则，尤其是可以变为实时进程。
+
+进程修改任何进程（包括自己）的描述符的rt_priority和policy字段同样需要具有CAP_SYS_NICE权能
+
+### sched_getscheduler()和sched_setscheduler()系统调用
+sched_getscheduler()：查询由pid参数所表示的进程当前所用的调度策略。(SCHED_FIFO SCHED_RR SCHED_NORMAL)
+- sys_sched_getscheduler()服务例程调用find_task_by_pid()，然后确定pid所对应的进程描述符，并返回其policy字段
+  
+sched_setscheduler()：设置调度策略以及pid参数所表示进程的相关参数。
+- sys_sched_setscheduler()服务例程调用do_sched_priority()函数，检查由参数policy指定的调度策略和由参数param->sched_priority指定的新优先级是否有效，并检查CAP_SYS_NICE权能或者进程的拥有者是否具有超级用户权限。如果条件都满足，那么把进程从运行队列中删除，更新进程的静态优先级、实时优先级和动态优先级，把进程插回运行队列中，在需要的情况下调用resched_task()抢占运行队列的当前进程。
+
+### sched_getparam()和sched_setparam()系统调用
+sched_getparam()：为pid所表示的进程检索调度参数
+- 调用sys_sched_getparam()系统服务例程找到与pid相关的进程描述符指针，把它的rt_priority字段存放到sched_param的局部变量中，并调用copy_to_user()把它拷贝到进程空间中由param参数指定的地址。
+
+sched_setparam()
+- 类似于sched_setscheduler()，不同在于不让调用者设置policy的值。调用sys_sched_setscheduler()服务例程调用do_sched_setscheduler()。
+
+### sched_yield()系统调用
+允许进程在不被挂起的情况下主动放弃CPU。主要由SCHED_FIFO实时进程使用
+
+### sched_get_priority_min()和sched_get_priority_max()系统调用
+sched_get_priority_min：返回最小静态优先级的值
+- 实时进程：1
+- 普通进程：0
+
+sched_get_priority_max：返回最大静态优先级的值
+- 实时进程：99
+- 普通进程：0
+
+### sched_rr_get_interval()系统调用
+把pid表示的实时进程的轮转时间片写入用户态地址空间的一个结构中。
+
 
 
 
