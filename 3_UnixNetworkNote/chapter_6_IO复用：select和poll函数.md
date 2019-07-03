@@ -11,8 +11,8 @@ IO复用的典型应用场合：
 1. 阻塞式IO
 2. 非阻塞式IO
 3. IO复用(select和poll)
-4. 信号驱动式IO(SIGIO)
-5. 异步IO(POSIX的aio_系列函数，前四种均为同步IO)
+4. 信号驱动式IO(SIGIO)：由内核通知何时启动一个IO操作
+5. 异步IO(POSIX的aio_系列函数，前四种均为同步IO)：内核通知IO操作何时完成，在IO操作完成前，可以做其他事情
 
 参考[知乎回答](https://www.zhihu.com/people/levonfly/activities)
 
@@ -92,6 +92,61 @@ struct pollfd{
     short revents;//返回描述符状态
 };
 ```
+IO过程分为两个阶段：
+1. 数据准备阶段
+2. 内核空间复制回用户进程缓冲区空间
+
+同步IO：请求进程阻塞，直到IO操作完成
+
+异步IO：不导致请求进程阻塞
+
+阻塞与非阻塞进程在于第一步是否完成后才返回，但第二步均需要当前进程去完成
+
+
+## epoll详讲
+epoll三大关键要素：
+1. mmap：epoll通过内核与用户空间mmap同一块内存空间，避免用户空间与内核空间的数据拷贝
+2. 红黑树：存储epoll监听套接字
+3. 链表：存放事件的双向链表
+
+关键数据结构：
+```c
+struct eventpoll
+{
+    spin_lock_t lock;            //对本数据结构的访问
+    struct mutex mtx;            //防止使用时被删除
+    wait_queue_head_t wq;        //sys_epoll_wait() 使用的等待队列
+    wait_queue_head_t poll_wait; //file->poll()使用的等待队列
+    struct list_head rdllist;    //事件满足条件的链表
+    struct rb_root rbr;          //用于管理所有fd的红黑树
+    struct epitem *ovflist;      //将事件到达的fd进行链接起来发送至用户空间
+}
+```
+事件节点
+```c
+struct epitem
+{
+    struct rb_node rbn;            //用于主结构管理的红黑树
+    struct list_head rdllink;       //事件就绪队列
+    struct epitem *next;           //用于主结构体中的链表
+    struct epoll_filefd ffd;         //每个fd生成的一个结构
+    int nwait;                 
+    struct list_head pwqlist;     //poll等待队列
+    struct eventpoll *ep;          //该项属于哪个主结构体
+    struct list_head fllink;         //链接fd对应的file链表
+    struct epoll_event event;  //注册的感兴趣的事件,也就是用户空间的epoll_event
+ }
+ ```
+epoll工作流程：
+1. epoll_create():
+通过mmap建立eventpoll结构，并返回其描述符
+2. epoll_ctl()：
+添加或删除节点
+3. epoll_wait():
+等待事件发生（事件链表不为空）
+
+
+
 
 
 
