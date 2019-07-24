@@ -1,5 +1,5 @@
 #include <iostream>
-#include <pthread.h>
+#include <mutex>
 
 using namespace std;
 
@@ -39,21 +39,21 @@ using namespace std;
 
 
 //简单singleton实现，线程不安全:若两个线程同时首次调用getInstance()，同时检测ptr为NULL，将会实例化两次。
-class singleton{
-protected:
-    singleton(){};//默认构造函数定义为protected，防止类外实例化
-private:
-    static singleton* ptr;
-public:
-    static singleton* getInstance();
-};
-singleton* singleton::ptr = NULL;
-singleton* singleton::getInstance(){
-    if(ptr == NULL){
-        ptr = new singleton(); 
-    }
-    return ptr;
-}
+// class singleton{
+// protected:
+//     singleton(){};//默认构造函数定义为protected，防止类外实例化
+// private:
+//     static singleton* ptr;
+// public:
+//     static singleton* getInstance();
+// };
+// singleton* singleton::ptr = NULL;
+// singleton* singleton::getInstance(){
+//     if(ptr == NULL){
+//         ptr = new singleton(); 
+//     }
+//     return ptr;
+// }
 
 // //懒汉与饿汉
 // //懒汉：不到万不得已不实例化。只有在调用时才实例化。（上述则为懒汉）
@@ -61,46 +61,50 @@ singleton* singleton::getInstance(){
 
 // //线程安全的懒汉
 // //实现：加锁
-// class singleton{
-// protected:
-//     singleton(){
-//         pthread_mutex_init(&m_mutex,NULL);//互斥锁初始化，
-//     };
-// private:
-//     static singleton* ptr;
-// public:
-//     static pthread_mutex_t m_mutex;
-//     static singleton* getInstance();
-//     ~singleton(){
-//         //pthread_mutex_destroy(&m_mutex);//无需调用,m_mutex为静态分配，若使用malloc动态分配内存才调用才函数
-//     }
-// };
-// pthread_mutex_t singleton::m_mutex;
-// singleton* singleton::ptr = NULL;
-// singleton* singleton::getInstance(){
-//     if(ptr == NULL){//当ptr != NULL时，无需加锁，提高效率
-//         pthread_mutex_lock(&m_mutex);//加锁是比较耗时的操作
-//         if(ptr == NULL){//确保ptr未被实例化
-//             ptr = new singleton(); 
-//         }
-//         pthread_mutex_unlock(&m_mutex);
-//     }
-//     return ptr;
-// }
-
-//饿汉实现，实现简单，不用加锁，线程安全
 class singleton{
 protected:
-    singleton(){};//默认构造函数定义为protected，防止类外实例化
+    singleton& operator=(const singleton&){};
+    singleton(const singleton&){};
+    singleton(){    
+    };
 private:
     static singleton* ptr;
 public:
+    static mutex m_mutex;
     static singleton* getInstance();
+    ~singleton(){
+        //pthread_mutex_destroy(&m_mutex);//无需调用,m_mutex为静态分配，若使用malloc动态分配内存才调用才函数
+    }
 };
-singleton* singleton::ptr = new singleton;//ptr为类中的静态对象，能够调用protected的构造函数
+//pthread_mutex_t singleton::m_mutex;
+mutex singleton::m_mutex;
+singleton* singleton::ptr = NULL;
 singleton* singleton::getInstance(){
+    if(ptr == NULL){//当ptr != NULL时，无需加锁，提高效率
+        //pthread_mutex_lock(&m_mutex);//加锁是比较耗时的操作
+        m_mutex.lock();
+        if(ptr == NULL){//确保ptr未被实例化
+            ptr = new singleton(); 
+        }
+        m_mutex.unlock();
+        //pthread_mutex_unlock(&m_mutex);
+    }
     return ptr;
-};
+}
+
+//饿汉实现，实现简单，不用加锁，线程安全
+// class singleton{
+// protected:
+//     singleton(){};//默认构造函数定义为protected，防止类外实例化
+// private:
+//     static singleton* ptr;
+// public:
+//     static singleton* getInstance();
+// };
+// singleton* singleton::ptr = new singleton;//ptr为类中的静态对象，能够调用protected的构造函数
+// singleton* singleton::getInstance(){
+//     return ptr;
+// };
 int main(){
     static singleton* p = singleton::getInstance();
     return 0;

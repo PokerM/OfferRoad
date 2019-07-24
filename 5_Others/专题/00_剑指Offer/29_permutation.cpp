@@ -7,8 +7,7 @@ public:
         sort(ans.begin(),ans.end());
         auto it = unique(ans.begin(),ans.end());//将重复内容交换到后端，并返回不重复部分的尾部
         ans.resize(distance(ans.begin(),it));
-        return ans;
-         
+        return ans; 
     }
     void chang(string &str,int start,int len){
         if(start == len)

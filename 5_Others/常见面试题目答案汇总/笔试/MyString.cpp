@@ -85,8 +85,7 @@ MyString::MyString(const char* str){
     cout<<"const char called"<<endl;
     char* tmp = new char(strlen(str)+1);
     strcpy(tmp, str);
-    swap(ch, tmp);//交换指针，由于tmp是局部变量，在函数调用完毕后会自动销毁，可以将ch中原来内容销毁掉，
-                  //若简单地使用,ch = tmp，使得两个指针指向同一片区域，函数调用完毕后,tmp指针销毁，也会把所指向内容销毁，则ch成为野指针
+    swap(ch, tmp);
 }
 
 MyString::MyString(const string str){

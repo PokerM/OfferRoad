@@ -14,7 +14,6 @@ public:
         int len = old + 2 * _num;     //移动游标至尾部
         if(len > length-1)return;     //给出的空间长度不够，直接返回
         str[len+1]='\0';              //末尾添加'\0'
-
         //倒着替换
         for(int i=old;i>=0;i--){        
             if(str[i]==' '){

@@ -6,8 +6,7 @@ class Solution {
          A+=to_string(a);
          A+=to_string(b);
          B+=to_string(b);
-         B+=to_string(a);
-          
+         B+=to_string(a); 
          return A<B;
      }
      string PrintMinNumber(vector<int> numbers) {

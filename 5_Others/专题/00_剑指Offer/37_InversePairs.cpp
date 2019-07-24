@@ -3,7 +3,6 @@ public:
     int InversePairs(vector<int> data) {
         if(data.size()<2)return 0;
         vector<int> copy(data);
-
         return reInversePairs(data, copy, 0, data.size()-1);
     }
     int reInversePairs(vector<int>& data, vector<int>& copy, int start, int end){
