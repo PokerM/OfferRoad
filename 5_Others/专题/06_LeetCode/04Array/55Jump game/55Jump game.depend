@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1538133018 source:e:\c++\leetcode\04array\55jump game\main.cpp
+	<iostream>
+	<vector>
+

@@ -17,7 +17,7 @@ public:
         cout<<"product B"<<endl;
     }
 }; 
-class singleFactor{
+class singleFactory{
 public:
     static product* makeProduct(int kind){
         if(kind == 0)return new productA;
@@ -25,10 +25,10 @@ public:
     }
 };
 int main(){
-    product* p = singleFactor::makeProduct(0);
+    product* p = singleFactory::makeProduct(0);
     p->printName();
     delete p;
-    p = singleFactor::makeProduct(1);
+    p = singleFactory::makeProduct(1);
     p->printName();
     delete p;
     return 0;

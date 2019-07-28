@@ -42,12 +42,12 @@ public:
         cout<<"serial 2"<<endl;
     }
 }; 
-class factor{
+class factory{
 public:
     virtual productA* makeProductA() = 0;
     virtual productB* makeProductB() = 0;
 };
-class factor1 : public factor{
+class factory1 : public factory{
 public:
     virtual productA* makeProductA(){
         return new productA1();
@@ -56,7 +56,7 @@ public:
         return new productB1();
     }
 };
-class factor2 : public factor{
+class factory2 : public factory{
 public:
     virtual productA* makeProductA(){
         return new productA2();
@@ -66,13 +66,13 @@ public:
     }
 };
 int main(){
-    factor* f = new factor1;
+    factory* f = new factory1;
     product* p = f->makeProductA();
     p->printName();
     p->printSerial();
     delete p;
     delete f;
-    f = new factor2;
+    f = new factory2;
     p = f->makeProductA(); 
     p->printName();
     p->printSerial();

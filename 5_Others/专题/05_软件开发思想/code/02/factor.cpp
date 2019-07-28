@@ -17,29 +17,29 @@ public:
         cout<<"product B"<<endl;
     }
 }; 
-class factor{
+class factory{
 public:
     virtual product* makeProduct() = 0;
 };
-class factorA : public factor{
+class factoryA : public factory{
 public:
     virtual product* makeProduct(){
         return new productA();
     }
 };
-class factorB : public factor{
+class factoryB : public factory{
 public:
     virtual product* makeProduct(){
         return new productB();
     }
 };
 int main(){
-    factor* f = new factorA;
+    factory* f = new factoryA;
     product* p = f->makeProduct();
     p->printName();
     delete p;
     delete f;
-    f = new factorB;
+    f = new factoryB;
     p = f->makeProduct(); 
     p->printName();
     delete p;
